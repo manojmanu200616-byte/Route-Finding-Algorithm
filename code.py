@@ -1,49 +1,31 @@
-# Simple A* Algorithm (Very Basic)
+import heapq
 
-def h(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+def a_star(graph, start, goal, heuristic):
+    pq = [(0, start, [])]
+    visited = set()
 
-def astar(grid, start, goal):
-    open_list = [start]
-    came = {}
-    g = {start: 0}
+    while pq:
+        cost, node, path = heapq.heappop(pq)
+        if node in visited:
+            continue
+        path = path + [node]
+        if node == goal:
+            return path
+        visited.add(node)
 
-    while open_list:
-        # find node with lowest f = g + h
-        current = open_list[0]
-        for node in open_list:
-            if g[node] + h(node, goal) < g[current] + h(current, goal):
-                current = node
-
-        open_list.remove(current)
-
-        if current == goal:
-            path = [current]
-            while current in came:
-                current = came[current]
-                path.append(current)
-            return path[::-1]
-
-        x, y = current
-        moves = [(1,0), (-1,0), (0,1), (0,-1)]
-
-        for dx, dy in moves:
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < len(grid) and 0 <= ny < len(grid[0]) and grid[nx][ny] == 0:
-                new_g = g[current] + 1
-                if (nx, ny) not in g or new_g < g[(nx, ny)]:
-                    g[(nx, ny)] = new_g
-                    came[(nx, ny)] = current
-                    if (nx, ny) not in open_list:
-                        open_list.append((nx, ny))
+        for neighbor, weight in graph[node]:
+            heapq.heappush(pq, (cost + weight + heuristic[neighbor], neighbor, path))
 
     return None
 
+def main():
+    graph = {
+        'A': [('B',1), ('C',3)],
+        'B': [('D',1)],
+        'C': [('D',1)],
+        'D': []
+    }
+    heuristic = {'A':3,'B':2,'C':1,'D':0}
+    print(a_star(graph, 'A', 'D', heuristic))
 
-grid = [
-    [0,0,0],
-    [1,0,1],
-    [0,0,0]
-]
-
-print(astar(grid, (2,0), (0,2)))
+main()
